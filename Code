@@ -1,0 +1,118 @@
+#Server.py
+
+### Importing the required modules
+
+import socket
+from tkinter import*
+
+### defining a function to send message to Client
+
+def send(listbox,entry):
+    message=entry.get()
+    listbox.insert('end',"Server:"+ message)      #Display message in Listbox
+    entry.delete(0,END)                           #Clear entry box after sending
+    client.send(bytes(message, "utf-8"))          #Send message to client
+
+### defining a function to recieve message from Client
+
+def recieve(listbox):
+    message_from_client = client.recv(50)       #Recive 50 bytes
+    listbox.insert('end',"Client:"+ message_from_client.decode("utf-8"))  #decode bytes to string and displays it in Listbox
+
+    #print("Client" + message_from_client.decode("utf-8"))
+
+
+### Creating GUI Window
+
+root = Tk()                 #Create main window
+
+### Creating GUI Widgets
+
+### Entry Widget
+entry = Entry()
+entry.pack(side=BOTTOM)
+
+### Listbox(To display message)
+listbox = Listbox(root)
+listbox.pack()
+
+### Send Button
+button = Button(root, text = "Send", command = lambda:send(listbox,entry))
+button.pack(side = BOTTOM)
+
+### Receive Button
+rbutton = Button(root, text = "Recieve", command = lambda:recieve(listbox))
+rbutton.pack(side = BOTTOM)
+
+root.title("Server")        # Set window title
+
+### Creating Socket Server
+s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+### Allow the reuse of address
+s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,True)
+
+HOST_NAME = socket.gethostname()
+PORT = 12345
+
+### Bind socket to host and port
+
+s.bind((HOST_NAME,PORT))
+s.listen(4)
+client,address = s.accept()
+
+### Start GUI Main Loop
+
+root.mainloop()
+
+# Client.py
+
+### Importing the required modules
+import socket
+from tkinter import*
+
+### Function to Send Message to Server
+def send(listbox,entry):
+    message=entry.get()
+    listbox.insert('end',"Client:"+ message)
+    entry.delete(0,END)
+    s.send(bytes(message, "utf-8"))
+    recieve(listbox)
+
+### Function to Receive Message from Server
+def recieve(listbox):
+    message = s.recv(50)              # Receive up to 50 bytes from server
+    listbox.insert('end',"server: " + message.decode("utf-8"))
+
+### Create GUI Window
+root = Tk()
+
+### Create GUI Widgets
+entry = Entry()
+entry.pack(side=BOTTOM)
+
+listbox = Listbox(root)
+listbox.pack()
+
+button = Button(root, text = "Send", command = lambda:send(listbox,entry))
+button.pack(side = BOTTOM)
+
+rbutton = Button(root, text = "Recieve", command = lambda:recieve(listbox))
+rbutton.pack(side = BOTTOM)
+
+root.title("Client")
+
+### Create TCP Socket and Connect to Server
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+HOST_NAME = socket.gethostname()
+PORT = 12345
+
+### Connect to server
+s.connect((HOST_NAME,PORT))
+
+# Start GUI Main Loop
+root.mainloop()
+
+
+
